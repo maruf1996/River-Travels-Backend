@@ -41,4 +41,24 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
   }
 }
 
-export const AuthController = { createUser, loginUser }
+const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const token = req.headers.authorization
+    // console.log(token)
+    const result = await AuthServices.refreshToken(token!)
+    res.send({
+      statusCode: 200,
+      success: true,
+      message: 'Token refreshed successfully',
+      data: result,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const AuthController = { createUser, loginUser, refreshToken }

@@ -14,39 +14,83 @@ const createUser = async (data: User): Promise<User | null> => {
   return result
 }
 
-const loginUser = async (user: User): Promise<ILoginUserResponse> => {
-  const result = await prisma.user.findUnique({
+const loginUser = async (traveller: User): Promise<ILoginUserResponse> => {
+  const user = await prisma.user.findUnique({
     where: {
-      email: user.email,
+      email: traveller.email,
     },
   })
+  // console.log(traveller)
 
-  if (!result) {
+  if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found')
   }
 
-  const userExist = await bcrypt.compare(user.password, result.password)
+  const userExist = await bcrypt.compare(traveller.password, user.password)
 
   if (!userExist) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials')
   }
 
   // create access token and refresh token
-  const { id: userId, role } = result
+  const payloadData = {
+    email: user!.email,
+    role: user!.role,
+    phoneNumber: user!.contactNo,
+    fullName: user!.name,
+  }
 
   const accessToken = jwtHelpers.createToken(
-    { userId, role },
+    payloadData,
     config.jwt.secret as Secret,
     config.jwt.expires_in as string,
   )
 
+  return { accessToken }
+}
+
+const refreshToken = async (token: string) => {
+  if (!token) {
+    throw new Error('Token is required')
+  }
+
+  let verifiedToken = null
+  try {
+    verifiedToken = jwtHelpers.verifyToken(token, config.jwt.secret as Secret)
+  } catch (error) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Invalid Refresh Token')
+  }
+
+  //checking deleted user's refresh token
+  const { email } = verifiedToken
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  })
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User does not exist')
+  }
+
+  // generate new token
+  const payloadData = {
+    email: user!.email,
+    role: user!.role,
+    phoneNumber: user!.contactNo,
+    fullName: user!.name,
+  }
+
   const refreshToken = jwtHelpers.createToken(
-    { userId, role },
+    payloadData,
     config.jwt.secret as Secret,
     config.jwt.refresh_expires_in as string,
   )
 
-  return { accessToken, refreshToken }
+  return {
+    refreshToken,
+  }
 }
 
-export const AuthServices = { createUser, loginUser }
+export const AuthServices = { createUser, loginUser, refreshToken }
