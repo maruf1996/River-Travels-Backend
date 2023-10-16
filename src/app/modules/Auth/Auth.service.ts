@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { User } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import httpStatus from 'http-status'
@@ -54,15 +55,15 @@ const refreshToken = async (token: string) => {
     throw new Error('Token is required')
   }
 
-  let verifiedToken = null
+  let decodedToken: any = null
   try {
-    verifiedToken = jwtHelpers.verifyToken(token, config.jwt.secret as Secret)
+    decodedToken = jwtHelpers.decodeToken(token)
   } catch (error) {
     throw new ApiError(httpStatus.FORBIDDEN, 'Invalid Refresh Token')
   }
 
   //checking deleted user's refresh token
-  const { email } = verifiedToken
+  const { email } = decodedToken
 
   const user = await prisma.user.findUnique({
     where: {
@@ -85,7 +86,7 @@ const refreshToken = async (token: string) => {
   const refreshToken = jwtHelpers.createToken(
     payloadData,
     config.jwt.secret as Secret,
-    config.jwt.refresh_expires_in as string,
+    config.jwt.expires_in as string,
   )
 
   return {

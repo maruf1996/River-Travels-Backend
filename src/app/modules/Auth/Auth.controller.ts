@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express'
-import config from '../../../config'
 import { AuthServices } from './Auth.service'
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -19,18 +18,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 const loginUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await AuthServices.loginUser(req.body)
-
-    const { refreshToken, accessToken: token } = result
-
-    // set refresh token into cookie
-    const cookieOptions = {
-      secure: config.env === 'production',
-      httpOnly: true,
-    }
-
-    res.cookie('refreshToken', refreshToken, cookieOptions)
-    // console.log(token)
-
+    const { accessToken: token } = result
     res.status(200).json({
       status: 'success',
       message: 'User sign in successfully!',
