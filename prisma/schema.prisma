@@ -11,9 +11,8 @@ datasource db {
 }
 
 enum Role {
-  SuperAdmin
-  Admin
-  LauncheStuff
+  super_admin
+  admin
 }
 
 enum Gender {
@@ -21,19 +20,116 @@ enum Gender {
   female
 }
 
-model User {
+model Admin {
   id         String   @id @default(uuid())
   name       String
-  contactNo  String
+  contactNo  String   @map("contact_no")
   gender     Gender
   age        String
   address    String
   email      String   @unique
   password   String
-  role       String   @default("Traveller")
+  role       Role
+  profileImg String   @default("https://t4.ftcdn.net/jpg/02/29/75/83/360_F_229758328_7x8jwCwjtBMmC6rgFzLFhZoEpLobB6L8.jpg")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  contactNo  String   @map("contact_no")
+  gender     Gender
+  age        String
+  address    String
+  email      String   @unique
+  password   String
+  role       String   @default("traveller")
   profileImg String   @default("https://t4.ftcdn.net/jpg/02/29/75/83/360_F_229758328_7x8jwCwjtBMmC6rgFzLFhZoEpLobB6L8.jpg")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   @@map("users")
+}
+
+model LaunchStuff {
+  id             String          @id @default(uuid())
+  name           String
+  contactNo      String          @map("contact_no")
+  gender         Gender
+  age            String
+  address        String
+  email          String          @unique
+  password       String
+  role           String          @default("launch_stuff")
+  profileImg     String          @default("https://t4.ftcdn.net/jpg/02/29/75/83/360_F_229758328_7x8jwCwjtBMmC6rgFzLFhZoEpLobB6L8.jpg")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  launchDettails LaunchDetails[]
+
+  @@map("launch_stuffs")
+}
+
+model Root {
+  id             String          @id @default(uuid())
+  name           String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  LaunchDettails LaunchDetails[]
+
+  @@map("roots")
+}
+
+model Shedule {
+  id             String          @id @default(uuid())
+  name           String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  LaunchDettails LaunchDetails[]
+
+  @@map("shedule")
+}
+
+model LaunchDetails {
+  id              String   @id @default(uuid())
+  name            String
+  startTime       String   @map("start_time")
+  isAvailable     Boolean  @default(true) @map("is_available")
+  chairCoachSeat  Int      @map("chair_coach_seat")
+  chairCoachFare  Float    @map("chair_coach_fare")
+  singleCabinSeat Int      @map("single_cabin_seat")
+  singleCabinFare Float    @map("single_cabin_fare")
+  vipCabinSeat    Int      @map("vip_cabin_seat")
+  vipCabinFare    Float    @map("vip_cabin_fare")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  stuffId   String
+  stuff     LaunchStuff @relation(fields: [stuffId], references: [id])
+  rootId    String
+  root      Root        @relation(fields: [rootId], references: [id])
+  sheduleId String
+  shedule   Shedule     @relation(fields: [sheduleId], references: [id])
+
+  @@map("launch_details")
+}
+
+model Booking {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  contactNo String   @map("contact_no")
+  gender    Gender
+  age       String
+  address   String
+  launch    String
+  root      String
+  seat      String
+  fare      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("bookings")
 }

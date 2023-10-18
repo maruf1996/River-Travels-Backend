@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { User } from '@prisma/client'
-import bcrypt from 'bcrypt'
 import httpStatus from 'http-status'
 import { Secret } from 'jsonwebtoken'
 import ApiError from '../../../Errors/ApiError'
@@ -10,26 +9,50 @@ import { jwtHelpers } from '../../Helpers/jwtHelpers'
 import { ILoginUserResponse } from './Auth.interface'
 
 const createUser = async (data: User): Promise<User | null> => {
-  data.password = bcrypt.hashSync(data.password, 12)
   const result = await prisma.user.create({ data })
   return result
 }
 
-const loginUser = async (traveller: User): Promise<ILoginUserResponse> => {
-  const user = await prisma.user.findUnique({
+const loginUser = async (payload: any): Promise<ILoginUserResponse> => {
+  const { email, password } = payload
+
+  let isUserExist
+
+  const admin = await prisma.admin.findUnique({
     where: {
-      email: traveller.email,
+      email,
     },
   })
-  // console.log(traveller)
+
+  const launchStuff = await prisma.launchStuff.findUnique({
+    where: {
+      email,
+    },
+  })
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  })
+
+  if (!admin && !launchStuff && !user) {
+    throw new Error('User does not Exist')
+  }
+
+  if (admin || launchStuff || user) {
+    isUserExist = admin || launchStuff || user
+  }
+
+  if (isUserExist && isUserExist.password !== password) {
+    throw new Error('Password is incorrect')
+  }
 
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found')
   }
 
-  const userExist = await bcrypt.compare(traveller.password, user.password)
-
-  if (!userExist) {
+  if (!isUserExist) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials')
   }
 
@@ -38,6 +61,7 @@ const loginUser = async (traveller: User): Promise<ILoginUserResponse> => {
     email: user!.email,
     role: user!.role,
     phoneNumber: user!.contactNo,
+    profileImg: user!.profileImg,
     fullName: user!.name,
   }
 
@@ -63,7 +87,7 @@ const refreshToken = async (token: string) => {
   }
 
   //checking deleted user's refresh token
-  const { email } = decodedToken
+  const { email, role, phoneNumber, fullName, profileImg } = decodedToken
 
   const user = await prisma.user.findUnique({
     where: {
@@ -71,16 +95,29 @@ const refreshToken = async (token: string) => {
     },
   })
 
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User does not exist')
+  const admin = await prisma.admin.findUnique({
+    where: {
+      email,
+    },
+  })
+
+  const launchStuff = await prisma.launchStuff.findUnique({
+    where: {
+      email,
+    },
+  })
+
+  if (!admin && !launchStuff && !user) {
+    throw new Error('User does not Exist')
   }
 
   // generate new token
   const payloadData = {
-    email: user!.email,
-    role: user!.role,
-    phoneNumber: user!.contactNo,
-    fullName: user!.name,
+    email,
+    role,
+    phoneNumber,
+    profileImg,
+    fullName,
   }
 
   const refreshToken = jwtHelpers.createToken(
