@@ -26,7 +26,8 @@ const getLaunchDetailses = async (
   next: NextFunction,
 ) => {
   try {
-    const result = await LaunchDetailsService.getLaunchDetailses()
+    const options = req.query
+    const result = await LaunchDetailsService.getLaunchDetailses(options)
     res.status(200).json({
       status: 'success',
       message: 'Launch Details Retrive is Successfully',

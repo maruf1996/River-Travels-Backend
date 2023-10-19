@@ -95,14 +95,13 @@ model Shedule {
 model LaunchDetails {
   id              String   @id @default(uuid())
   name            String
-  startTime       String   @map("start_time")
   isAvailable     Boolean  @default(true) @map("is_available")
-  chairCoachSeat  Int      @map("chair_coach_seat")
-  chairCoachFare  Float    @map("chair_coach_fare")
-  singleCabinSeat Int      @map("single_cabin_seat")
-  singleCabinFare Float    @map("single_cabin_fare")
-  vipCabinSeat    Int      @map("vip_cabin_seat")
-  vipCabinFare    Float    @map("vip_cabin_fare")
+  chairCoachSeat  String   @map("chair_coach_seat")
+  chairCoachFare  String   @map("chair_coach_fare")
+  singleCabinSeat String   @map("single_cabin_seat")
+  singleCabinFare String   @map("single_cabin_fare")
+  vipCabinSeat    String   @map("vip_cabin_seat")
+  vipCabinFare    String   @map("vip_cabin_fare")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

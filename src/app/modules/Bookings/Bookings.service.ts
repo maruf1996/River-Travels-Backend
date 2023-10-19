@@ -22,6 +22,15 @@ const getBooking = async (id: string): Promise<Booking | null> => {
   return result
 }
 
+const myBooking = async (email: string): Promise<Booking | null> => {
+  const result = await prisma.booking.findFirst({
+    where: {
+      email,
+    },
+  })
+  return result
+}
+
 const updateBooking = async (
   id: string,
   payload: Partial<Booking>,
@@ -50,4 +59,5 @@ export const BookingService = {
   getBooking,
   updateBooking,
   deleteBooking,
+  myBooking,
 }

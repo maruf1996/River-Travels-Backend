@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { LaunchDetails } from '@prisma/client'
 import { prisma } from '../../../Shared/prisma'
 
@@ -10,8 +12,23 @@ const createLaunchDetails = async (
   return result
 }
 
-const getLaunchDetailses = async () => {
-  const result = await prisma.launchDetails.findMany({})
+const getLaunchDetailses = async (options: any) => {
+  const { searchTerm } = options
+  // console.log(searchTerm)
+
+  const result = await prisma.launchDetails.findMany({
+    include: {
+      root: true,
+      shedule: true,
+    },
+    where: {
+      root: {
+        name: {
+          contains: searchTerm,
+        },
+      },
+    },
+  })
   return result
 }
 
@@ -19,6 +36,11 @@ const getLaunchDetails = async (id: string): Promise<LaunchDetails | null> => {
   const result = await prisma.launchDetails.findUnique({
     where: {
       id,
+    },
+    include: {
+      root: true,
+      shedule: true,
+      stuff: true,
     },
   })
   return result

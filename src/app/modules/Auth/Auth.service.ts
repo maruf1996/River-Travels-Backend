@@ -48,10 +48,6 @@ const loginUser = async (payload: any): Promise<ILoginUserResponse> => {
     throw new Error('Password is incorrect')
   }
 
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found')
-  }
-
   if (!isUserExist) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials')
   }
