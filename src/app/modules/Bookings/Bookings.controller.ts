@@ -47,20 +47,6 @@ const getBooking = async (req: Request, res: Response, next: NextFunction) => {
   }
 }
 
-const myBooking = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { email } = req.params
-    const result = await BookingService.getBooking(email)
-    res.status(200).json({
-      status: 'success',
-      message: 'Booking Retrive is Successfully',
-      data: result,
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
 const updateBooking = async (
   req: Request,
   res: Response,
@@ -104,5 +90,4 @@ export const BookingController = {
   getBooking,
   updateBooking,
   deleteBooking,
-  myBooking,
 }

@@ -16,8 +16,6 @@ const createUser = async (data: User): Promise<User | null> => {
 const loginUser = async (payload: any): Promise<ILoginUserResponse> => {
   const { email, password } = payload
 
-  let isUserExist
-
   const admin = await prisma.admin.findUnique({
     where: {
       email,
@@ -37,28 +35,22 @@ const loginUser = async (payload: any): Promise<ILoginUserResponse> => {
   })
 
   if (!admin && !launchStuff && !user) {
-    throw new Error('User does not Exist')
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'User does not exist')
   }
 
-  if (admin || launchStuff || user) {
-    isUserExist = admin || launchStuff || user
-  }
+  const isUserExist = admin || launchStuff || user
 
   if (isUserExist && isUserExist.password !== password) {
-    throw new Error('Password is incorrect')
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Password is incorrect')
   }
 
-  if (!isUserExist) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid credentials')
-  }
-
-  // create access token and refresh token
+  // Create access token and refresh token
   const payloadData = {
-    email: user!.email,
-    role: user!.role,
-    phoneNumber: user!.contactNo,
-    profileImg: user!.profileImg,
-    fullName: user!.name,
+    email: isUserExist!.email,
+    role: isUserExist!.role,
+    phoneNumber: isUserExist!.contactNo,
+    profileImg: isUserExist!.profileImg,
+    fullName: isUserExist!.name,
   }
 
   const accessToken = jwtHelpers.createToken(
